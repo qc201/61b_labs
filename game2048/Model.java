@@ -1,6 +1,8 @@
 package game2048;
 
+import java.util.ArrayList;
 import java.util.Formatter;
+import java.util.List;
 import java.util.Observable;
 
 
@@ -107,16 +109,42 @@ public class Model extends Observable {
      *    and the trailing tile does not.
      * */
 
+    /** Return the result of merging OTHERTILE with me after moving to
+     *  (COL, ROW). */
+//    public Tile merge(int col, int row, Tile otherTile) {
+//        assert value == otherTile.value();
+//        next = otherTile.next = new Tile(2 * value, col, row);
+//        return next;
+//    }
+
     public boolean tilt(Side side) {
         boolean changed;
-        changed = false;
+        changed = true;
         int moveScore = 0;
-
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-        if (side == Side.NORTH) {
+        for (int col=0; col<board.size(); col++) {
+            for (int row=0; row<board.size(); row++) {
+                int curRow = board.size()-row-1;
+                Tile curTile = board.tile(col, curRow);
+                if (curTile != null) {
+                    if (curRow == board.size()-1) {
+                        continue;
+                    } else if (curRow+1 < board.size() && board.tile(col, curRow+1) == null) {
+                        int avaliableRow = curRow + 1;
+                        while (avaliableRow < board.size() && board.tile(col, avaliableRow) == null) {
+                            avaliableRow += 1;
+                        }
+                        System.out.println(avaliableRow);
+                        board.move(col, avaliableRow-1, curTile);
+                    } else if (curRow+1 < board.size() && board.tile(col, curRow+1).value() == curTile.value()) {
+                        Tile otherTile = board.tile(col, curRow+1);
+                        otherTile.merge(curTile.row(), curTile.col(), curTile);
+                    }
+                }
 
+            }
         }
 
         checkGameOver();
