@@ -1,5 +1,6 @@
 package game2048;
 
+import javax.xml.stream.XMLEventFactory;
 import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
@@ -118,39 +119,84 @@ public class Model extends Observable {
 //    }
 
     public boolean tilt(Side side) {
+        if (side == Side.SOUTH) {
+            System.out.println("down pressed");
+            //board.setViewingPerspective(Side.SOUTH);
+        } else if (side == Side.WEST) {
+            System.out.println("left pressed");
+            //board.setViewingPerspective(Side.WEST);
+        } else if (side == Side.EAST) {
+            System.out.println("right pressed");
+            //board.setViewingPerspective(Side.EAST);
+        }
         boolean changed;
-        changed = true;
+        changed = false;
         int moveScore = 0;
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
-        for (int col=0; col<board.size(); col++) {
-            for (int row=0; row<board.size(); row++) {
-                int curRow = board.size()-row-1;
-                Tile curTile = board.tile(col, curRow);
+        for (int col=0; col<board.size(); col ++) {
+            int[] mergedRow = new int[board.size()];
+            for (int row=board.size()-1; row >=0; row--) {
+                Tile curTile = board.tile(col, row);
                 if (curTile != null) {
-                    if (curRow == board.size()-1) {
+                    if (row == board.size()-1) {
                         continue;
-                    } else if (curRow+1 < board.size() && board.tile(col, curRow+1) == null) {
-                        int avaliableRow = curRow + 1;
-                        while (avaliableRow < board.size() && board.tile(col, avaliableRow) == null) {
-                            avaliableRow += 1;
+                    } else {
+                        // find the first empty row
+                        int availableRow = row+1;
+                        while (availableRow<board.size() && board.tile(col, availableRow) == null) {
+                            availableRow += 1;
                         }
-                        System.out.println(avaliableRow);
-                        board.move(col, avaliableRow-1, curTile);
-                    } else if (curRow+1 < board.size() && board.tile(col, curRow+1).value() == curTile.value()) {
-                        Tile otherTile = board.tile(col, curRow+1);
-                        otherTile.merge(curTile.row(), curTile.col(), curTile);
+                        // 1. we have already in the top row, the available row number should be out of index
+                        if (availableRow >= board.size()) {
+                            board.move(col, availableRow-1, curTile);
+                            changed = true;
+                        }
+                        // 2. we encounter an obstacle, meaning on the available row, there is another tile has value
+                        else {
+                            Tile anotherTile = board.tile(col, availableRow);
+                            //2.1 this tile has the same value with the current tile
+                            if (anotherTile.value() == curTile.value()) {
+                                // 2.1.1 the upper tile has never been merged in this round
+                                if (mergedRow[availableRow] != 1) {
+                                    board.move(col, availableRow, curTile);
+                                    mergedRow[availableRow] = 1;
+                                    changed = true;
+                                    moveScore += 2*curTile.value();
+                                }
+                                // 2.1.2 the upper tile has been already merged in this round
+                                else {
+                                    board.move(col, availableRow-1, curTile);
+                                    changed = true;
+                                }
+                            }
+                            // 2.2 other tile has different value with the current tile
+                            else {
+                                // 2.2.1 the other tile is right on top of current tile
+                                if (availableRow-1 == row) {
+                                    changed = true;
+                                } else {
+                                    // 2.2.2 we moved once
+                                    board.move(col, availableRow-1, curTile);
+                                    changed = true;
+                                }
+
+                            }
+
+                        }
+
                     }
                 }
-
             }
         }
+        score += moveScore;
 
         checkGameOver();
         if (changed) {
             setChanged();
         }
+        board.setViewingPerspective(Side.NORTH);
         return changed;
     }
 
