@@ -120,14 +120,14 @@ public class Model extends Observable {
 
     public boolean tilt(Side side) {
         if (side == Side.SOUTH) {
-            System.out.println("down pressed");
-            //board.setViewingPerspective(Side.SOUTH);
+            //System.out.println("down pressed");
+            board.setViewingPerspective(Side.SOUTH);
         } else if (side == Side.WEST) {
-            System.out.println("left pressed");
-            //board.setViewingPerspective(Side.WEST);
+            //System.out.println("left pressed");
+            board.setViewingPerspective(Side.WEST);
         } else if (side == Side.EAST) {
-            System.out.println("right pressed");
-            //board.setViewingPerspective(Side.EAST);
+            //System.out.println("right pressed");
+            board.setViewingPerspective(Side.EAST);
         }
         boolean changed;
         changed = false;
